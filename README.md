@@ -1,8 +1,6 @@
 # qed
 wire up express routes to promise-returning functions
 
-(note: this is a bit of readme-driven development. adhuc demonstrandum, as it were.)
-
 ## Installation
 
     $ npm install qed
