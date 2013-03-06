@@ -1,6 +1,10 @@
 # qed
 wire up express routes to promise-returning functions
 
+## Stability
+
+Unstable: Expect patches and features, possible api changes.
+
 ## Installation
 
     $ npm install qed
