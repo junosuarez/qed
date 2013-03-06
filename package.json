@@ -1,0 +1,24 @@
+{
+  "name": "qed",
+  "version": "0.0.0",
+  "description": "wire up express routes to promise-returning functions",
+  "main": "index.js",
+  "scripts": {
+    "test": "node node_modules/mocha/bin/mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/jden/qed.git"
+  },
+  "keywords": [
+    "express",
+    "promise",
+    "promises",
+    "connect",
+    "architecture",
+    "map"
+  ],
+  "author": "jden <jason@denizac.org>",
+  "license": "MIT",
+  "readmeFilename": "README.md"
+}
