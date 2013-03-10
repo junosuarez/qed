@@ -1,6 +1,7 @@
 var EventEmitter = require('events').EventEmitter
 var dot = require('dotmap')
 var Q = require('q')
+var fninfo = require('fninfo')
 
 var msg = dot.safe('message')
 
@@ -15,6 +16,12 @@ function qed(promiser, params) {
   })) {
     throw new Error('Accessor strings must start with `req.` or `res.`')
   }
+  if (!params.length) {
+    var info = fninfo(promiser)
+    if (info.length === 2 && info[0] === 'req' && info[1] === 'res') {
+      params = ['req','res']      
+    }
+  }
   params = params.map(dot.safe)
 
   var requestHandler = function (req, res) {
@@ -23,14 +30,17 @@ function qed(promiser, params) {
       return(accessor(o))
     })
 
-    return Q(promiser.apply(null, args))
+    return promiser.apply(null, args)
+
   }
 
   var defaultResponseHandler = function (req, res, promise) {
     return promise.then(function (result) {
       res.send(handler.responseCode || 200, result)
     }).then(null, function (err) {
-      res && res.send && res.send(500, msg(err))
+      if (res.error) res.error(err)
+      else if (res.send) res.send(500, msg(err))
+
       throw err
     })
   }
@@ -38,14 +48,16 @@ function qed(promiser, params) {
   var handler = function (req, res) {
     var promise = requestHandler(req, res)
 
-    promise.then(null, function (err) {
-      qed.emit('error', err, req, res)
-    })
+    if (promise && promise.then) {
+      promise.then(null, function (err) {
+        qed.emit('error', err, req, res)
+      })
 
-    if (!handler.responseHandler) {
-      promise = defaultResponseHandler(req, res, promise)
-    } else {
-      promise = handler.responseHandler(res, res, promise)
+      if (!handler.responseHandler) {
+        promise = defaultResponseHandler(req, res, promise)
+      } else {
+        promise = handler.responseHandler(res, res, promise)
+      }
     }
 
   }

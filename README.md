@@ -51,6 +51,19 @@ Or even more holy-cow-hands-on HTTP madness:
           this.send(202, result)
         }))
 
+And, if you want to handle your req-res stuff manually you may do so:
+
+    // make sure your function has parameters of exactly `req, res`
+    function boxes(req, res) {
+
+    }
+
+    // pass it to qed without specifying any accessors
+    app.get('/boxes',
+      qed(foxes))
+
+Note, if you don't return a promise, then you're totally responsible for sending your own response.
+
 The power is yours.
 
 ## API

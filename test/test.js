@@ -8,6 +8,8 @@ var Q = require('q')
 
 var qed = require('../index')
 
+var noop = function () {}
+
 describe('qed', function () {
   it('has interface', function () {
     qed.should.be.a('function')
@@ -50,11 +52,28 @@ describe('qed', function () {
 
   it('throws if params start with other than req. or res.', function () {
     expect(function () {
-      qed(qed, 'request.foo')
+      qed(noop, 'request.foo')
     }).to.throw()
     expect(function () {
-      qed(qed, 'req.foo')
+      qed(noop, 'req.foo')
     }).not.to.throw()
+  })
+
+  it('if no accessor strings are specified, but the promiser is a function with parameters exactly "req" and "res", pass in req and res', function () {
+
+    var called = false
+    var promiser = function (req, res) {
+      req.should.equal('req')
+      res.should.equal('res')
+      called = true
+    }
+
+    var fn = qed(promiser)
+
+    fn('req', 'res')
+
+    called.should.equal(true)
+
   })
 
   it('maps args and invokes promiser therewith', function () {
@@ -77,6 +96,21 @@ describe('qed', function () {
     }}
 
     fn({}, res)
+
+  })
+
+  it('does not send the result if the ServerResponse stream is ended', function (done) {
+    var res = {writable: false, send: sinon.spy()}
+    var promiser = sinon.stub().returns('2342342342343')
+    var fn = qed(promiser)
+
+    fn({}, res)
+    setTimeout(function () {
+
+      res.send.should.not.have.been.called
+      done()
+    }, 10)
+    
   })
 
   it('sends a 500 with Error#message on promise rejected', function (done) {
@@ -93,22 +127,22 @@ describe('qed', function () {
 
   describe('qed#response', function () {
     it('exists on a qed-constructed function', function () {
-      qed(qed).should.have.interface({
+      qed(noop).should.have.interface({
         response: Function
       })
     })
 
     it('requires a responseCode or handler', function () {
       expect(function () {
-        qed(qed).response()
+        qed(noop).response()
       }).to.throw()
 
       expect(function () {
-        qed(qed).response('foo')
+        qed(noop).response('foo')
       }).to.throw()
 
       expect(function () {
-        qed(qed).response(9000)
+        qed(noop).response(9000)
       }).to.throw()
 
       expect(function () {
@@ -116,12 +150,12 @@ describe('qed', function () {
       }).not.to.throw()
 
       expect(function () {
-        qed(qed).response(function () {})
+        qed(noop).response(function () {})
       }).not.to.throw()
     })
 
     it('returns an express function', function () {
-      var fn = qed(qed).response(200)
+      var fn = qed(noop).response(200)
       fn.should.be.a('function')
       fn.length.should.equal(2)
     })

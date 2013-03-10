@@ -1,6 +1,6 @@
 {
   "name": "qed",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "wire up express routes to promise-returning functions",
   "main": "index.js",
   "scripts": {
@@ -30,7 +30,8 @@
   },
   "dependencies": {
     "dotmap": "~0.1.0",
-    "q": "~0.9.0"
+    "q": "~0.9.1",
+    "fninfo": "~1.0.2"
   },
   "stability": "unstable"
 }
