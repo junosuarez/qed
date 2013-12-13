@@ -1,6 +1,6 @@
 var EventEmitter = require('events').EventEmitter
 var dot = require('dotmap')
-var Q = require('q')
+var Promise = require('bluebird')
 var fninfo = require('fninfo')
 
 var code = dot.safe('code')
@@ -31,32 +31,31 @@ function qed(promiser, params) {
       return(accessor(o))
     })
 
-    return promiser.apply(null, args)
+    return Promise.cast(promiser.apply(null, args))
 
   }
 
   var defaultResponseHandler = function (req, res, promise) {
     return promise.then(function (result) {
       res.send(handler.responseCode || 200, result)
-    }).then(null, function (err) {
+    })
+    .catch(function (err) {
       if (res.error) { res.error(err) }
-      else if (res.send) res.send(code(err) || 500, msg(err))
+      else if { (res.send) res.send(code(err) || 500, msg(err)) }
     })
   }
 
   var handler = function (req, res) {
     var promise = requestHandler(req, res)
 
-    if (promise && promise.then) {
-      promise.then(null, function (err) {
-        qed.emit('error', err, req, res)
-      })
+    promise.catch(function (err) {
+      qed.emit('error', err, req, res)
+    })
 
-      if (!handler.responseHandler) {
-        promise = defaultResponseHandler(req, res, promise)
-      } else {
-        promise = handler.responseHandler(res, res, promise)
-      }
+    if (!handler.responseHandler) {
+      promise = defaultResponseHandler(req, res, promise)
+    } else {
+      promise = handler.responseHandler(res, res, promise)
     }
 
   }
