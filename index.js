@@ -37,15 +37,20 @@ function qed(promiser, params) {
 
   var defaultResponseHandler = function (req, res, promise) {
     return promise.then(function (result) {
-      res.send(handler.responseCode || 200, result)
+      if (res.writable) {
+        res.send(handler.responseCode || 200, result)
+      }
     })
     .catch(function (err) {
       if (res.error) { res.error(err) }
-      else if { (res.send) res.send(code(err) || 500, msg(err)) }
+      else if (res.send) { res.send(code(err) || 500, msg(err)) }
     })
   }
 
   var handler = function (req, res) {
+    if (!req || !res) {
+      throw new TypeError('Handler must be invoked with req and res objects')
+    }
     var promise = requestHandler(req, res)
 
     promise.catch(function (err) {

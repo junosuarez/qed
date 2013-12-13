@@ -4,8 +4,8 @@ chai.use(require('chai-interface'))
 var expect = chai.expect
 var sinon = require('sinon')
 chai.use(require('sinon-chai'))
-var Q = require('q')
-
+var Promise = require('bluebird')
+Error.stackTraceLimit = 128
 var qed = require('../index')
 
 var noop = function () {}
@@ -41,11 +41,18 @@ describe('qed', function () {
     fn.length.should.equal(2)
   })
 
+  it('returned function throws if not invoked with req and res objects', function () {
+    var fn = qed(function () { return Promise.resolve() })
+    expect(function () {
+      fn()
+    }).to.throw(TypeError)
+  })
+
   it('invokes the promiser', function () {
     var promiser = sinon.spy()
     var fn = qed(promiser)
 
-    fn()
+    fn({},{})
 
     promiser.should.have.been.calledOnce
   })
@@ -81,15 +88,15 @@ describe('qed', function () {
     var promiser = sinon.spy()
     var fn = qed(promiser, 'req.a', 'req.c')
 
-    fn(req)
+    fn(req, {})
 
     promiser.should.have.been.calledWithExactly(1, 'three')
   })
 
   it('sends the result', function (done) {
-    var promiser = function () { return Q.resolve(5) }
+    var promiser = function () { return Promise.resolve(5) }
     var fn = qed(promiser)
-    var res = {send: function (status, result) {
+    var res = {writable: true, send: function (status, result) {
       status.should.equal(200)
       result.should.equal(5)
       done()
@@ -110,11 +117,11 @@ describe('qed', function () {
       res.send.should.not.have.been.called
       done()
     }, 10)
-    
+
   })
 
   it('sends a 500 with Error#message on promise rejected', function (done) {
-    var promiser = function () { return Q.reject(new Error('foo')) }
+    var promiser = function () { return Promise.reject(new Error('foo')) }
     var fn = qed(promiser)
     var res = {send: function (status, result) {
       status.should.equal(500)
@@ -161,11 +168,11 @@ describe('qed', function () {
     })
 
     it('can override the response code for successful responses', function (done) {
-      var promiser = function () { return Q.resolve(5) }
+      var promiser = function () { return Promise.resolve(5) }
 
       var fn = qed(promiser).response(222)
 
-      var res = {send: function (status, result) {
+      var res = {writable: true, send: function (status, result) {
         status.should.equal(222)
         result.should.equal(5)
         done()
@@ -175,7 +182,7 @@ describe('qed', function () {
     })
 
     it('can override the entire responseHandler for success', function (done) {
-      var promiser = function () { return Q.resolve(5) }
+      var promiser = function () { return Promise.resolve(5) }
 
       var fn = qed(promiser).response(function (err, result) {
         result.should.equal(5)
@@ -183,12 +190,12 @@ describe('qed', function () {
         done()
       })
 
-      fn()
+      fn({},{})
     })
 
     it('can override the entire responseHandler for error', function (done) {
       var Err = new Error('scallywags')
-      var promiser = function () { return Q.reject(Err) }
+      var promiser = function () { return Promise.reject(Err) }
 
       var fn = qed(promiser).response(function (err, result) {
         expect(result).to.equal(undefined)
@@ -196,7 +203,7 @@ describe('qed', function () {
         done()
       })
 
-      fn()
+      fn({},{})
     })
 
 
@@ -212,7 +219,7 @@ describe('qed', function () {
       res.should.equal(Res)
       done()
     })
-    var promiser = function () { return Q.reject(Err)}
+    var promiser = function () { return Promise.reject(Err)}
     var fn = qed(promiser)
     fn(Req, Res)
   })
