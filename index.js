@@ -19,7 +19,7 @@ function qed(promiser, params) {
   if (!params.length) {
     var info = fninfo(promiser)
     if (info.length === 2 && info[0] === 'req' && info[1] === 'res') {
-      params = ['req','res']      
+      params = ['req','res']
     }
   }
   params = params.map(dot.safe)
@@ -40,8 +40,6 @@ function qed(promiser, params) {
     }).then(null, function (err) {
       if (res.error) res.error(err)
       else if (res.send) res.send(500, msg(err))
-
-      throw err
     })
   }
 
