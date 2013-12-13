@@ -3,6 +3,7 @@ var dot = require('dotmap')
 var Q = require('q')
 var fninfo = require('fninfo')
 
+var code = dot.safe('code')
 var msg = dot.safe('message')
 
 function qed(promiser, params) {
@@ -38,8 +39,8 @@ function qed(promiser, params) {
     return promise.then(function (result) {
       res.send(handler.responseCode || 200, result)
     }).then(null, function (err) {
-      if (res.error) res.error(err)
-      else if (res.send) res.send(500, msg(err))
+      if (res.error) { res.error(err) }
+      else if (res.send) res.send(code(err) || 500, msg(err))
     })
   }
 
